@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jogo da Memória - Gatinhos</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;font-family:sans-serif;color:#fff}
+h1{margin-bottom:20px;font-size:2rem}
+.grid{display:grid;grid-template-columns:repeat(4,100px);gap:10px}
+.card{width:100px;height:100px;background:#16213e;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;transition:transform .3s,background .3s;user-select:none}
+.card:hover{transform:scale(1.05)}
+.card.flipped,.card.matched{background:#0f3460;transform:rotateY(180deg)}
+.card:not(.flipped):not(.matched)::after{content:'🐾';font-size:2rem}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.overlay.show{display:flex}
+.overlay h2{font-size:2.5rem;margin-bottom:10px}
+.overlay .trophy{font-size:5rem}
+.confetti{position:fixed;top:-10px;font-size:1.5rem;animation:fall 3s linear infinite;z-index:11}
+@keyframes fall{to{top:110vh;transform:rotate(720deg)}}
+</style>
+</head>
+<body>
+<h1>🐱 Jogo da Memória</h1>
+<div class="grid" id="grid"></div>
+<div class="overlay" id="overlay">
+  <div class="trophy">🏆</div>
+  <h2>Parabéns! 🎉</h2>
+  <p>Você encontrou todos os pares!</p>
+</div>
+<script>
+const emojis=['😺','😸','😻','😽','🙀','😿','😹','😾'];
+const cards=[...emojis,...emojis].sort(()=>Math.random()-.5);
+const grid=document.getElementById('grid');
+let flipped=[],matched=0,locked=false;
+
+cards.forEach((e,i)=>{
+  const card=document.createElement('div');
+  card.className='card';
+  card.dataset.emoji=e;
+  card.dataset.index=i;
+  card.addEventListener('click',()=>flip(card));
+  grid.appendChild(card);
+});
+
+function flip(card){
+  if(locked||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  card.textContent=card.dataset.emoji;
+  flipped.push(card);
+  if(flipped.length===2){
+    locked=true;
+    if(flipped[0].dataset.emoji===flipped[1].dataset.emoji){
+      flipped.forEach(c=>c.classList.add('matched'));
+      matched+=2;
+      flipped=[];locked=false;
+      if(matched===cards.length)win();
+    }else{
+      setTimeout(()=>{
+        flipped.forEach(c=>{c.classList.remove('flipped');c.textContent=''});
+        flipped=[];locked=false;
+      },800);
+    }
+  }
+}
+
+function win(){
+  document.getElementById('overlay').classList.add('show');
+  const confettis=['🎊','🎉','✨','⭐','🌟'];
+  for(let i=0;i<30;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.textContent=confettis[i%confettis.length];
+    c.style.left=Math.random()*100+'vw';
+    c.style.animationDelay=Math.random()*2+'s';
+    document.body.appendChild(c);
+  }
+}
+</script>
+</body>
+</html>
